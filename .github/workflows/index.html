@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LLM Code Generator with Timing</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 2rem;
+    background: #f5f5f5;
+  }
+  textarea {
+    width: 100%;
+    height: 120px;
+    font-family: monospace;
+    font-size: 1rem;
+  }
+  button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 1.1rem;
+  }
+  pre {
+    background: #222;
+    color: #0f0;
+    padding: 1rem;
+    margin-top: 1rem;
+    white-space: pre-wrap;
+  }
+  #timeTaken {
+    margin-top: 0.5rem;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<h1>Simple LLM Code Generator Simulator</h1>
+
+<label for="prompt">Enter code description prompt:</label>
+<textarea id="prompt" placeholder="Describe the code you want..."></textarea>
+
+<br />
+<button id="generateBtn">Generate Code</button>
+
+<div id="timeTaken"></div>
+
+<h2>Generated Code:</h2>
+<pre id="outputCode">// Generated code will appear here</pre>
+
+<script>
+  // Fake code generation function (simulate delay and output)
+  function fakeGenerateCode(prompt) {
+    return new Promise((resolve) => {
+      // Simulate variable time delay based on prompt length (100ms to 1500ms)
+      const delay = Math.min(1500, 100 + prompt.length * 20);
+
+      setTimeout(() => {
+        // Fake generated code - just reverses the prompt letters in a comment block
+        const code = `// Code generated for prompt:\n// "${prompt}"\n\n` +
+          `function example() {\n  console.log("${prompt.split('').reverse().join('')}");\n}`;
+
+        resolve(code);
+      }, delay);
+    });
+  }
+
+  const generateBtn = document.getElementById('generateBtn');
+  const promptInput = document.getElementById('prompt');
+  const outputCode = document.getElementById('outputCode');
+  const timeTakenDiv = document.getElementById('timeTaken');
+
+  generateBtn.addEventListener('click', async () => {
+    const prompt = promptInput.value.trim();
+    if (!prompt) {
+      alert('Please enter a prompt describing the code you want.');
+      return;
+    }
+
+    outputCode.textContent = '// Generating code... please wait.';
+    timeTakenDiv.textContent = '';
+
+    const startTime = performance.now();
+
+    const code = await fakeGenerateCode(prompt);
+
+    const endTime = performance.now();
+    const durationMs = (endTime - startTime).toFixed(2);
+
+    outputCode.textContent = code;
+    timeTakenDiv.textContent = `Time taken: ${durationMs} ms`;
+  });
+</script>
+
+</body>
+</html>
