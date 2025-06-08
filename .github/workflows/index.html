@@ -1,1 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LLM Code Generator with Timing</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 2rem;
+    background: #f0f0f0;
+  }
+  textarea {
+    width: 100%;
+    height: 120px;
+    font-family: monospace;
+    font-size: 1rem;
+  }
+  button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 1.1rem;
+  }
+  pre {
+    background: #222;
+    color: #0f0;
+    padding: 1rem;
+    margin-top: 1rem;
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  #timingLog {
+    margin-top: 1rem;
+    background: #fff;
+    padding: 1rem;
+    border-radius: 6px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+
+<h1>Real LLM Code Generator with Timing</h1>
+
+<label for="prompt">Enter code description prompt:</label>
+<textarea id="prompt" placeholder="Describe the code you want..."></textarea>
+
+<br />
+<button id="generateBtn">Generate Code</button>
+
+<h2>Generated Code:</h2>
+<pre id="outputCode">// Generated code will appear here</pre>
+
+<h2>Timing Log (All prompts):</h2>
+<div id="timingLog"></div>
+
+<script>
+  const apiKey = 'YOUR_OPENAI_API_KEY_HERE'; // <-- Replace with your API key
+
+  const promptInput = document.getElementById('prompt');
+  const generateBtn = document.getElementById('generateBtn');
+  const outputCode = document.getElementById('outputCode');
+  const timingLog = document.getElementById('timingLog');
+
+  // Keep all timing logs here
+  const allTimings = [];
+
+  async function generateCodeFromPrompt(prompt) {
+    const url = 'https://api.openai.com/v1/chat/completions';
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    };
+
+    // We'll ask GPT for code output only
+    const data = {
+      model: 'gpt-4o-mini',  // or 'gpt-4', 'gpt-4o', or 'gpt-3.5-turbo'
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant that only outputs code based on the user prompt.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0,
+      max_tokens: 1000,
+      n: 1,
+      stream: false
+    };
+
+    const startTime = performance.now();
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(data),
+    });
+
+    const endTime = performance.now();
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+    }
+
+    const json = await response.json();
+
+    const generatedText = json.choices[0].message.content.trim();
+
+    const durationMs = (endTime - startTime).toFixed(2);
+
+    return { generatedText, durationMs };
+  }
+
+  generateBtn.addEventListener('click', async () => {
+    const prompt = promptInput.value.trim();
+    if (!prompt) {
+      alert('Please enter a prompt.');
+      return;
+    }
+
+    outputCode.textContent = '// Generating code... please wait.';
+    generateBtn.disabled = true;
+
+    try {
+      const { generatedText, durationMs } = await generateCodeFromPrompt(prompt);
+
+      outputCode.textContent = generatedText;
+
+      // Add this prompt timing to the log
+      allTimings.push({ prompt, durationMs });
+
+      // Update timing log display
+      timingLog.innerHTML = allTimings
+        .map((entry, i) => `${i + 1}. "${entry.prompt}" — ${entry.durationMs} ms`)
+        .join('\n');
+
+    } catch (err) {
+      outputCode.textContent = `// Error: ${err.message}`;
+    } finally {
+      generateBtn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>
 
