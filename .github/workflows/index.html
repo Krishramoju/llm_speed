@@ -38,6 +38,7 @@
     max-height: 150px;
     overflow-y: auto;
     font-family: monospace;
+    white-space: pre-wrap;
   }
 </style>
 </head>
@@ -55,17 +56,16 @@
 <pre id="outputCode">// Generated code will appear here</pre>
 
 <h2>Timing Log (All prompts):</h2>
-<div id="timingLog"></div>
+<div id="timingLog">// No prompts yet</div>
 
 <script>
-  const apiKey = 'YOUR_OPENAI_API_KEY_HERE'; // <-- Replace with your API key
+  const apiKey = 'YOUR_OPENAI_API_KEY_HERE'; // Replace with your API key
 
   const promptInput = document.getElementById('prompt');
   const generateBtn = document.getElementById('generateBtn');
   const outputCode = document.getElementById('outputCode');
   const timingLog = document.getElementById('timingLog');
 
-  // Keep all timing logs here
   const allTimings = [];
 
   async function generateCodeFromPrompt(prompt) {
@@ -76,9 +76,8 @@
       'Authorization': `Bearer ${apiKey}`
     };
 
-    // We'll ask GPT for code output only
     const data = {
-      model: 'gpt-4o-mini',  // or 'gpt-4', 'gpt-4o', or 'gpt-3.5-turbo'
+      model: 'gpt-4o-mini', // or 'gpt-4', 'gpt-3.5-turbo'
       messages: [
         { role: 'system', content: 'You are a helpful assistant that only outputs code based on the user prompt.' },
         { role: 'user', content: prompt }
@@ -100,7 +99,9 @@
     const endTime = performance.now();
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      const errorJSON = await response.json().catch(() => ({}));
+      const errorMsg = errorJSON.error?.message || response.statusText;
+      throw new Error(`OpenAI API error: ${response.status} ${errorMsg}`);
     }
 
     const json = await response.json();
@@ -127,11 +128,9 @@
 
       outputCode.textContent = generatedText;
 
-      // Add this prompt timing to the log
       allTimings.push({ prompt, durationMs });
 
-      // Update timing log display
-      timingLog.innerHTML = allTimings
+      timingLog.textContent = allTimings
         .map((entry, i) => `${i + 1}. "${entry.prompt}" — ${entry.durationMs} ms`)
         .join('\n');
 
